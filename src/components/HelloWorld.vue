@@ -35,14 +35,41 @@
 
               </div>
               <v-container grid-list-sm>
-                <v-layout v-if="textSearch.length > 0" row wrap>
+                <v-layout v-if="textSearch.length > 0 && dataText !== null" row wrap>
+
+                  <v-flex xs12 sm6 md4 lg3 xl2 v-for="(imageData, index) in dataText.images.value" :key="index">
+                    <v-card height="400px" style="overflow: hidden" class="elevation-5">
+                      <img :src="imageData.thumbnailUrl" height="150px" />
+                      <v-card-title style="height: 180px; overflow: hidden">
+                        <div class="mt-2">{{imageData.name}}</div>
+                      </v-card-title>
+                      <v-card-actions class="mb-0">
+                        <v-btn flat color="orange" @click="openUrl(imageData.hostPageUrl)">Ver Mas</v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </v-flex>
+
+                  <v-flex xs12 v-for="(textData, index) in dataText.webPages.value" :key="index">
+                    <v-card class="elevation-5">
+                      <v-card-title primary-title>
+                        <div>
+                          <h3 class="headline mb-0">{{textData.name}}</h3>
+                          <div>{{textData.snippet}}</div>
+                        </div>
+                      </v-card-title>
+
+                      <v-card-actions class="mb-0">
+                        <v-btn flat color="orange" @click="openUrl(textData.displayUrl)">Ver Mas</v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </v-flex>
 
                 </v-layout>
                 <v-layout v-if="urlImage.length > 0" row wrap>
                   <v-flex xs12 sm6 md4 lg3 xl2 v-for="(image, index) in dataImage" :key="index">
-                    <v-card height="400px">
+                    <v-card height="400px" class="elevation-5">
                       <img :src="image.thumbnailUrl" height="150px"/>
-                      <v-card-title>
+                      <v-card-title style="height: 180px; overflow: hidden">
                           <div class="mt-2">{{image.name}}</div>
                       </v-card-title>
                       <v-card-actions class="mb-0">
@@ -175,7 +202,7 @@
         items: ['Argentina','Chile', 'Brazil','Mexico', 'Estados Unidos'],
         isMobile: false,
         dataImage: [],
-        dataText: []
+        dataText: null
       }
     },
     created(){
@@ -227,6 +254,7 @@
       },
       performVisualSearch(){
         this.textSearch = ''
+        this.dataImage.splice(0, this.dataImage.length)
         let form = new FormData()
         form.append('image',this.file,this.file.name)
         axios.post(
@@ -256,13 +284,17 @@
       },
       performTextSearch(){
         this.dialogTextSearch = false
+        this.dialogVoiceSearch = false
         this.urlImage = ''
         if(this.textSearch.trim().length > 0){
           axios.get(config.searchCredentials.urlWeb + '?q=' + this.textSearch + '&mkt=' + this.getMarket(),{
             headers:{ 'Ocp-Apim-Subscription-Key' : config.searchCredentials.key }
-          }).then( response => console.log(response))
+          }).then( response => {
+            this.dataText = {...response.data}
+          })
             .catch(error => console.log(error))
         }
+
       },
       startSpeechRecognition(){
         this.dialogVoiceSearch = true
